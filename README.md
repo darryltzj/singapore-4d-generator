@@ -46,7 +46,7 @@ python3 -m unittest discover tests
 
 ## Automatic refresh and Telegram
 
-`.github/workflows/refresh.yml` runs every **Wednesday, Saturday and Sunday at 7:15pm Singapore time**. It fetches new draws, commits the CSV and sends a Telegram message. You can also run it any time from the **Actions** tab ("Refresh draws" → "Run workflow").
+`.github/workflows/refresh.yml` runs every **Wednesday, Saturday and Sunday at 7:15pm Singapore time**. It fetches new draws, commits the CSV, redeploys the website and sends a Telegram message. You can also run it any time from the **Actions** tab ("Refresh draws" → "Run workflow").
 
 To turn on Telegram messages, add two repository secrets (**Settings → Secrets and variables → Actions → New repository secret**):
 
@@ -55,11 +55,11 @@ To turn on Telegram messages, add two repository secrets (**Settings → Secrets
 | `TELEGRAM_BOT_TOKEN` | Your bot's token. In Telegram, message **@BotFather**, send `/mybots` (or `/newbot` for a new bot), choose the bot, then **API Token**. |
 | `TELEGRAM_CHAT_ID` | Your chat id. Send `/start` to your bot, then open `https://api.telegram.org/bot<TOKEN>/getUpdates` and copy `message.chat.id`. |
 
-Optionally add a repository **variable** `SITE_URL` with your GitHub Pages link so messages include it. Without the secrets, the refresh still runs and just skips the message.
+Optionally add a repository **variable** `SITE_URL` = `https://darryltzj.github.io/singapore-4d-generator/` so messages include the link. Without the secrets, the refresh still runs and just skips the message.
 
 ## Website hosting
 
-The repository is private, so the site isn't hosted yet; run it locally as above. To host it free on GitHub Pages later: make the repo public, set **Settings → Pages → Build and deployment → Source: GitHub Actions**, then in `.github/workflows/pages.yml` switch on the commented `push` / `workflow_run` triggers (or run "Deploy website" by hand from the Actions tab).
+Live at **https://darryltzj.github.io/singapore-4d-generator/**. `.github/workflows/pages.yml` redeploys it after every push and every data refresh (Pages source: GitHub Actions).
 
 ## Data notes
 
