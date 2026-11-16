@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Singapore 4D Generator</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="stats.js"></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <h1>Singapore 4D Generator</h1>
+  <p class="sub"><span id="sum-draws">—</span> draws from <span id="sum-first">—</span> to <span id="sum-last">—</span>. Each draw has 23 winning numbers out of 10,000 (0000–9999).</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="lucky" aria-selected="true">Lucky numbers</button>
+    <button class="tab" role="tab" data-tab="results" aria-selected="false">Past results</button>
+    <button class="tab" role="tab" data-tab="check" aria-selected="false">Check a number</button>
+    <button class="tab" role="tab" data-tab="analysis" aria-selected="false">Analysis</button>
+  </div>
+
+  <p id="status" class="loading">Loading draws…</p>
+
+  <!-- LUCKY NUMBERS -->
+  <section id="lucky" class="sec">
+    <div class="card">
+      <h2>Lucky numbers for the next draw</h2>
+      <p class="note">Five numbers that have never won a prize in these draws, and five of the numbers that won the most. Press the button for a new set.</p>
+      <div class="row"><button class="btn primary" id="lucky-gen">Generate new picks</button></div>
+      <h3>Never drawn</h3>
+      <p class="note">Picked at random from the <span id="lucky-never-n">—</span> numbers that haven't won any prize since <span id="lucky-since">—</span>.</p>
+      <div class="tiles" id="lucky-never"></div>
+      <h3>Most drawn</h3>
+      <p class="note">Picked at random from the 20 numbers that won the most prizes.</p>
+      <div class="tiles" id="lucky-top"></div>
+      <p class="note">These picks are for fun, not a prediction. Each one has the same <b class="chance">—</b>% chance of winning a Big bet prize in the next draw as any other number. A number's past (never drawn or drawn often) doesn't change that, as the Analysis tab shows.</p>
+    </div>
+  </section>
+
+  <!-- PAST RESULTS -->
+  <section id="results" class="sec" hidden>
+    <div class="card" id="draw-viewer">
+      <div class="row">
+        <button class="btn" id="draw-prev">← Older</button>
+        <select id="draw-pick" aria-label="Draw date"></select>
+        <button class="btn" id="draw-next">Newer →</button>
+      </div>
+      <div id="draw-view"></div>
+    </div>
+    <div class="card">
+      <h2>Top 3 prizes by year</h2>
+      <p class="note">Click a row to see that draw's full results above.</p>
+      <div class="row"><select id="year-pick" aria-label="Year"></select></div>
+      <div class="tblwrap">
+        <table><thead><tr><th>Date</th><th>Draw</th><th>1st</th><th>2nd</th><th>3rd</th></tr></thead><tbody id="year-table"></tbody></table>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHECK A NUMBER -->
+  <section id="check" class="sec" hidden>
+    <div class="card">
+      <h2>Check a 4D number</h2>
+      <div class="row">
+        <input class="num" id="lk-input" inputmode="numeric" maxlength="4" value="1234" aria-label="4-digit number">
+        <span class="note">Type any number from 0000 to 9999.</span>
+      </div>
+      <div class="tiles">
+        <div class="tile"><div class="tile-l">Times it won a prize</div><span class="big" id="lk-app">—</span><div class="tile-l">in <span id="lk-draws">—</span> draws</div></div>
+        <div class="tile"><div class="tile-l">Draws it did not appear</div><span class="big" id="lk-without">—</span><div class="tile-l">out of the same draws</div></div>
+        <div class="tile"><div class="tile-l">Draws since it last appeared</div><span class="big" id="lk-since">—</span><div class="tile-l">last seen <span id="lk-last">—</span></div></div>
+        <div class="tile"><div class="tile-l">Historical win rate per draw</div><span class="big" id="lk-hist">—</span><div class="tile-l">times won ÷ draws, past 10 years</div></div>
+        <div class="tile"><div class="tile-l">Actual chance in the next draw</div><span class="big"><span class="chance">—</span>%</span><div class="tile-l">Big bet, any prize. Same for every number</div></div>
+      </div>
+      <p class="note">The historical rate only describes the past. The draw machines have no memory, so a number's past wins or misses don't change its chance in the next draw. The Analysis tab checks this against 10 years of draws. The average number won <span id="lk-avg">—</span> times over this period.</p>
+      <h3>Prizes won</h3>
+      <div id="lk-tiers"></div>
+      <h3>Draws it appeared in</h3>
+      <div id="lk-list"></div>
+    </div>
+    <div class="card">
+      <h2>Odds for any single number, next draw</h2>
+      <div class="tblwrap"><table><thead><tr><th>Prize</th><th class="n">Numbers drawn</th><th class="n">Chance</th><th class="n">About 1 in</th><th class="n">Big bet pays per $1</th></tr></thead><tbody id="odds-table"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ANALYSIS -->
+  <section id="analysis" class="sec" hidden>
+    <p class="sub">Numbers that hadn't come out in 1,000+ draws came out <b id="tk-cold">—</b>% of the time in the next draw. Numbers drawn within the last 50 draws came out <b id="tk-hot">—</b>% of the time. Both are close to the <b class="chance">—</b>% chance every number has.</p>
+    <div class="tiles">
+      <div class="tile"><div class="tile-l">Numbers never drawn in 10 years</div><span class="big" id="t-never">—</span><div class="tile-l">pure chance predicts <span id="t-never-exp">—</span></div></div>
+      <div class="tile"><div class="tile-l">Average return per $1 Big bet</div><span class="big">$<span id="t-ret">—</span></span><div class="tile-l">from the prize table, for any number</div></div>
+      <div class="tile"><div class="tile-l">Fairness tests showing bias</div><span class="big" id="t-biased">—</span><div class="tile-l">of <span id="t-ntests">—</span> tests (p &lt; 0.01)</div></div>
+    </div>
+    <div class="card">
+      <h2>Does a number become "due" the longer it hasn't appeared?</h2>
+      <p class="note">Chance of appearing in the next draw, grouped by how many draws since the number last appeared. Checked at every draw after the first 300. The dashed line is the chance every number has.</p>
+      <div class="chart" id="gap-chart"></div>
+      <p class="note">Difference between groups: p = <span id="gap-p">—</span>. A p above 0.05 means the groups differ no more than chance would produce.</p>
+    </div>
+    <div class="card">
+      <h2>Do "hot" numbers stay hot?</h2>
+      <p class="note">Chance of appearing in the next draw, grouped by how many times the number appeared in the previous 100 draws.</p>
+      <div class="chart" id="hot-chart"></div>
+    </div>
+    <div class="card">
+      <h2>Backtest: $1 Big bet on 10 numbers every draw</h2>
+      <p class="note">Played on each draw after the first 300, using only results known before that draw. Wins pay the standard Big bet prizes.</p>
+      <div class="tblwrap"><table><thead><tr><th>Numbers picked</th><th class="n">Staked</th><th class="n">Won back</th><th class="n">Per $1</th></tr></thead><tbody id="strat-table"></tbody></table></div>
+      <p class="note">With this many bets, luck alone would land a strategy anywhere from about $<span id="luck-lo">—</span> to $<span id="luck-hi">—</span> per $1 (95% range). Results inside that range show no edge.</p>
+    </div>
+    <div class="card">
+      <h2>Are the draws fair?</h2>
+      <p class="note">Chi-square tests compare the real draws with perfectly random ones. A p-value below 0.01 would suggest bias.</p>
+      <div class="tblwrap"><table><thead><tr><th>Test</th><th class="n">Chi-square</th><th class="n">df</th><th class="n">p-value</th><th>Result</th></tr></thead><tbody id="test-table"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>How many times each number won: real vs pure chance</h2>
+      <p class="note">Bars are the real count of numbers. Dots show what pure chance predicts.</p>
+      <div class="chart" id="count-chart"></div>
+    </div>
+    <div class="card">
+      <h2>Digit counts by position</h2>
+      <p class="note">Across all prize numbers. Each digit should land close to one-tenth of the total in each position.</p>
+      <div class="tblwrap"><table><thead><tr><th>Digit</th><th class="n">1st digit</th><th class="n">2nd digit</th><th class="n">3rd digit</th><th class="n">4th digit</th></tr></thead><tbody id="digit-table"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2>Longest-absent and most-drawn numbers</h2>
+      <p class="note">Interesting to look at, but neither list predicts the next draw (see the charts above).</p>
+      <div class="tiles">
+        <div><h3>Longest since last appearance</h3><table><thead><tr><th>Number</th><th class="n">Draws since</th><th>Last seen</th></tr></thead><tbody id="overdue-table"></tbody></table></div>
+        <div><h3>Most prizes won</h3><table><thead><tr><th>Number</th><th class="n">Times won</th></tr></thead><tbody id="frequent-table"></tbody></table></div>
+      </div>
+    </div>
+    <details class="card">
+      <summary>About the data and methods</summary>
+      <ul>
+        <li>Results come from 4dmoon.com's Singapore 4D archive and are refreshed automatically after each draw (see the repository README).</li>
+        <li>Draws #5350 (9 Jul 2025) and #5362–5367 (6–17 Aug 2025) are missing from that archive. No draws were held from April to June 2020.</li>
+        <li>Each of the 23 prizes is drawn separately, so the same number can win twice in one draw. That happened in about 39 draws, which is what chance predicts.</li>
+        <li>Big bet payouts per $1: 1st $2,000, 2nd $1,000, 3rd $490, Starter $250, Consolation $60.</li>
+        <li>"Chance in the next draw" for a Big bet = 1 − (9,999/10,000)<sup>23</sup> ≈ 0.23%.</li>
+      </ul>
+    </details>
+  </section>
+
+  <footer>Not affiliated with Singapore Pools. For official results, check singaporepools.com.sg. Play responsibly.</footer>
+</div>
+</body>
+</html>

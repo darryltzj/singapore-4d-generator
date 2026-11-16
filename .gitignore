@@ -1,0 +1,7 @@
+summary.json
+_site/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+node_modules/

@@ -1,0 +1,56 @@
+name: Refresh draws
+
+# Wed, Sat, Sun at 19:15 Singapore time (11:15 UTC). Draws are at 18:30 and results
+# are usually online by 18:45. GitHub may start scheduled runs a few minutes late.
+on:
+  schedule:
+    - cron: "15 11 * * 0,3,6"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch new draws
+        id: fetch
+        run: python scripts/fetch_draws.py --summary summary.json
+
+      - name: Commit updated data
+        run: |
+          if git diff --quiet -- data/; then
+            echo "No new draws."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/sg4d_results.csv
+            git commit -m "Add Singapore 4D draws ($(date -u +%Y-%m-%d))"
+            git push
+          fi
+
+      - name: Notify Telegram
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: python scripts/notify_telegram.py summary.json
+
+      - name: Notify Telegram of failure
+        if: failure()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/notify_telegram.py --failed
