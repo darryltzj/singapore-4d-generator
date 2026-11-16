@@ -46,7 +46,7 @@ python3 -m unittest discover tests
 
 ## Automatic refresh and Telegram
 
-`.github/workflows/refresh.yml` runs every **Wednesday, Saturday and Sunday at 7:15pm Singapore time**. It fetches new draws, commits the CSV, redeploys the website and sends a Telegram message. You can also run it any time from the **Actions** tab ("Refresh draws" → "Run workflow").
+`.github/workflows/refresh.yml` runs every **Wednesday, Saturday and Sunday at 7:15pm Singapore time**. It fetches new draws, commits the CSV and sends a Telegram message. You can also run it any time from the **Actions** tab ("Refresh draws" → "Run workflow").
 
 To turn on Telegram messages, add two repository secrets (**Settings → Secrets and variables → Actions → New repository secret**):
 
@@ -59,7 +59,7 @@ Optionally add a repository **variable** `SITE_URL` with your GitHub Pages link 
 
 ## Website hosting
 
-`.github/workflows/pages.yml` publishes the site to GitHub Pages after every push and every refresh. Enable it once under **Settings → Pages → Build and deployment → Source: GitHub Actions**. On a free account, Pages requires the repository to be public.
+The repository is private, so the site isn't hosted yet; run it locally as above. To host it free on GitHub Pages later: make the repo public, set **Settings → Pages → Build and deployment → Source: GitHub Actions**, then in `.github/workflows/pages.yml` switch on the commented `push` / `workflow_run` triggers (or run "Deploy website" by hand from the Actions tab).
 
 ## Data notes
 

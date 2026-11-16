@@ -1,14 +1,16 @@
 name: Deploy website
 
-# Publishes site/ plus data/ to GitHub Pages. Runs on every push to main and after
-# each data refresh (pushes made by the refresh workflow don't trigger "push").
+# Publishes site/ plus data/ to GitHub Pages.
+# Manual only for now: on a free account Pages needs a public repo. After making the
+# repo public and setting Settings > Pages > Source to "GitHub Actions", replace the
+# "on:" block with the commented one to redeploy after every push and every refresh.
 on:
-  push:
-    branches: [main]
-  workflow_run:
-    workflows: ["Refresh draws"]
-    types: [completed]
   workflow_dispatch: {}
+#  push:
+#    branches: [main]
+#  workflow_run:
+#    workflows: ["Refresh draws"]
+#    types: [completed]
 
 permissions:
   contents: read
